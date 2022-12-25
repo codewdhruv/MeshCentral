@@ -26,6 +26,17 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: Plugin
+                  name: deploy
+                  identifier: deploy
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: actions/setup-python@v2
+                      with:
+                        python-version: 3.x
+              - step:
                   type: Run
                   name: deploy docs
                   identifier: deploy_docs
