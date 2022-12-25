@@ -37,4 +37,4 @@ pipeline:
                       pip install mkdocs mkdocs-material pymdown-extensions
                       mkdocs gh-deploy --force
           sharedPaths:
-            - docs
+            - docs/
