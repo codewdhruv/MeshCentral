@@ -36,5 +36,3 @@ pipeline:
                       pip install --upgrade setuptools wheel
                       pip install mkdocs mkdocs-material pymdown-extensions
                       mkdocs gh-deploy --force
-          sharedPaths:
-            - docs/
