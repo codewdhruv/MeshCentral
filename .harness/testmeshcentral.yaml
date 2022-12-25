@@ -1,0 +1,40 @@
+pipeline:
+  name: test-meshcentral
+  identifier: testmeshcentral
+  projectIdentifier: DhrubaCI
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: dhrubaaccountconnector
+        repoName: MeshCentral
+        build: <+input>
+  stages:
+    - stage:
+        name: Deploy Docs
+        identifier: Deploy_Docs
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: deploy docs
+                  identifier: deploy_docs
+                  spec:
+                    shell: Sh
+                    command: |-
+                      pip install --upgrade pip
+                      pip install --upgrade setuptools wheel
+                      pip install mkdocs mkdocs-material pymdown-extensions
+                      mkdocs gh-deploy --force
+          sharedPaths:
+            - docs
