@@ -49,3 +49,45 @@ pipeline:
                       mkdocs gh-deploy --force
           sharedPaths:
             - /docs/
+    - stage:
+        name: codeql-analysis
+        identifier: codeqlanalysis
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Plugin
+                  name: Initialize CodeQL
+                  identifier: Initialize_CodeQL
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: github/codeql-action/init@v1
+              - step:
+                  type: Run
+                  name: make
+                  identifier: make
+                  spec:
+                    shell: Sh
+                    command: |-
+                      make bootstrap
+                      make release
+              - step:
+                  type: Plugin
+                  name: Perform CodeQL Analysis
+                  identifier: Perform_CodeQL_Analysis
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: github/codeql-action/analyze@v1
