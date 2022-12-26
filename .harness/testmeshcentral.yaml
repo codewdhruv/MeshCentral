@@ -68,15 +68,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: Run
-                  name: make
-                  identifier: make
-                  spec:
-                    shell: Sh
-                    command: |-
-                      make bootstrap
-                      make release
-              - step:
                   type: Plugin
                   name: Perform CodeQL Analysis
                   identifier: Perform_CodeQL_Analysis
