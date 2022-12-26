@@ -91,3 +91,5 @@ pipeline:
                     image: plugins/github-actions
                     settings:
                       uses: github/codeql-action/analyze@v1
+        when:
+          pipelineStatus: All
