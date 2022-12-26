@@ -68,15 +68,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: Plugin
-                  name: Initialize CodeQL
-                  identifier: Initialize_CodeQL
-                  spec:
-                    connectorRef: DhrubajyotiDocker
-                    image: plugins/github-actions
-                    settings:
-                      uses: github/codeql-action/init@v1
-              - step:
                   type: Run
                   name: make
                   identifier: make
@@ -94,5 +85,14 @@ pipeline:
                     image: plugins/github-actions
                     settings:
                       uses: github/codeql-action/analyze@v1
+              - step:
+                  type: Plugin
+                  name: Initialize CodeQL
+                  identifier: Initialize_CodeQL
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: github/codeql-action/init@v1
         when:
           pipelineStatus: All
