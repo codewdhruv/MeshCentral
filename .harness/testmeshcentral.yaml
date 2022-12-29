@@ -87,3 +87,42 @@ pipeline:
                       uses: github/codeql-action/init@v1
         when:
           pipelineStatus: All
+    - stage:
+        name: Docker
+        identifier: Docker
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: token
+                  identifier: token
+                  spec:
+                    shell: Sh
+                    command: echo "::set-output name=defined::true"
+                    envVariables:
+                      REGISTRY: ghcr.io
+                    outputVariables:
+                      - name: token
+              - step:
+                  type: Plugin
+                  name: Checkout
+                  identifier: Checkout
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: actions/checkout@v3
+                      with:
+                        fetch-depth: 0
+        when:
+          pipelineStatus: All
