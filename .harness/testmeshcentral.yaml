@@ -124,5 +124,34 @@ pipeline:
                       uses: actions/checkout@v3
                       with:
                         fetch-depth: 0
+              - step:
+                  type: Plugin
+                  name: Set up QEMU
+                  identifier: Set_up_QEMU
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: docker/setup-qemu-action@v2
+              - step:
+                  type: Plugin
+                  name: Set up Docker Buildx
+                  identifier: Set_up_Docker_Buildx
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: ocker/setup-buildx-action@v2
+              - step:
+                  type: Plugin
+                  name: Log in to the Container registry
+                  identifier: Log_in_to_the_Container_registry
+                  spec:
+                    connectorRef: DhrubajyotiDocker
+                    image: plugins/github-actions
+                    settings:
+                      uses: docker/login-action@v2
+                      with:
+                        registry: <+pipeline.variables.REGISTRY>
         when:
           pipelineStatus: All
