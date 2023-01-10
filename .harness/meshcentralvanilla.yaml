@@ -44,3 +44,6 @@ pipeline:
                     image: plugins/github-actions
                     settings:
                       uses: github/codeql-action/analyze@v1
+                  when:
+                    stageStatus: All
+                  failureStrategies: []
