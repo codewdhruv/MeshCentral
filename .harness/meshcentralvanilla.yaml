@@ -27,13 +27,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: Run
-                  name: Checkout
-                  identifier: Checkout
-                  spec:
-                    shell: Sh
-                    command: git checkout HEAD^2
-              - step:
                   type: Plugin
                   name: Initialize CodeQL
                   identifier: Initialize_CodeQL
