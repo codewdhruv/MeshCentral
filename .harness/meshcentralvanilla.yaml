@@ -1,0 +1,53 @@
+pipeline:
+  name: meshcentral-vanilla
+  identifier: meshcentralvanilla
+  projectIdentifier: DhrubaCI
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: dhrubaaccountconnector
+        repoName: meshcentral
+        build: <+input>
+  stages:
+    - stage:
+        name: CodeQL-Build
+        identifier: CodeQLBuild
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Checkout
+                  identifier: Checkout
+                  spec:
+                    shell: Sh
+                    command: git checkout HEAD^2
+              - step:
+                  type: Plugin
+                  name: Initialize CodeQL
+                  identifier: Initialize_CodeQL
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: plugins/github-actions
+                    settings:
+                      uses: github/codeql-action/init@v1
+              - step:
+                  type: Plugin
+                  name: Perform CodeQL Analysis
+                  identifier: Perform_CodeQL_Analysis
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: plugins/github-actions
+                    settings:
+                      uses: github/codeql-action/analyze@v1
