@@ -27,6 +27,13 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: Run
+                  name: Build
+                  identifier: Build
+                  spec:
+                    shell: Sh
+                    command: chmod 777 ./docker/docker.build.sh
+              - step:
                   type: Plugin
                   name: Initialize CodeQL
                   identifier: Initialize_CodeQL
