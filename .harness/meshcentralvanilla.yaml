@@ -32,7 +32,7 @@ pipeline:
                   identifier: Build
                   spec:
                     shell: Sh
-                    command: docker build -f docker/Dockerfile --force-rm --build-arg INCLUDE_MONGODBTOOLS=yes -t meshcentral .
+                    command: chmod 777 ./docker/docker-build.sh
               - step:
                   type: Plugin
                   name: Initialize CodeQL
