@@ -28,11 +28,14 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Build
+                  name: Install CodeQL
                   identifier: Build
                   spec:
                     shell: Sh
-                    command: chmod 777 ./docker/docker-build.sh
+                    command: |
+                      echo "deb [arch=amd64] https://pkg.github.com/github/codeql-cli-deb stable main" | sudo tee /etc/apt/sources.list.d/github-codeql.list
+                      curl -L https://github.com/github/codeql-cli-deb/releases/download/v2.0.0/codeql_2.0.0_amd64.deb -o codeql.deb
+                      sudo dpkg -i codeql.deb
               - step:
                   type: Plugin
                   name: Initialize CodeQL
