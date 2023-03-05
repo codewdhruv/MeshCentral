@@ -34,3 +34,15 @@ pipeline:
                     uses: actions/checkout@v2
                     with:
                       fetch-depth: "2"
+              - step:
+                  type: Action
+                  name: Initialize CodeQL
+                  identifier: Initialize_CodeQL
+                  spec:
+                    uses: github/codeql-action/init@v1
+              - step:
+                  type: Action
+                  name: Perform CodeQL Analysis
+                  identifier: Perform_CodeQL_Analysis
+                  spec:
+                    uses: github/codeql-action/analyze@v1
