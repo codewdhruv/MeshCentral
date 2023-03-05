@@ -1,0 +1,36 @@
+pipeline:
+  name: test-meshcentral
+  identifier: testmeshcentral
+  projectIdentifier: NgLabs
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: gitconnectordhruba
+        repoName: MeshCentral
+        build: <+input>
+  stages:
+    - stage:
+        name: CodeQL-Build
+        identifier: CodeQLBuild
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Action
+                  name: Checkout repository
+                  identifier: Checkout_repository
+                  spec:
+                    uses: actions/checkout@v2
+                    with:
+                      fetch-depth: "2"
