@@ -1,4 +1,4 @@
-# MeshCentral
+# MeshCentral Demo
 
 ## Table of Contents
 
