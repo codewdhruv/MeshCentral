@@ -5417,19 +5417,26 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
             var agentid = parseInt(req.query.meshcmd);
             
             // If the agentid is 3 or 4, check if we have a signed MeshCmd.exe
-            if ((agentid == 3) && (obj.parent.meshAgentBinaries[11000] != null)) { // Signed Windows MeshCmd.exe x86
+            if ((agentid == 3) && (obj.parent.meshAgentBinaries[11000] != null)) { // Signed Windows MeshCmd.exe x86-32
                 var stats = null, meshCmdPath = obj.parent.meshAgentBinaries[11000].path;
                 try { stats = obj.fs.statSync(meshCmdPath); } catch (e) { }
                 if ((stats != null)) {
                     setContentDispositionHeader(res, 'application/octet-stream', 'meshcmd.exe', null, 'meshcmd');
                     res.sendFile(meshCmdPath); return;
                 }
-            } else if ((agentid == 4) && (obj.parent.meshAgentBinaries[11001] != null)) { // Signed Windows MeshCmd64.exe x64
+            } else if ((agentid == 4) && (obj.parent.meshAgentBinaries[11001] != null)) { // Signed Windows MeshCmd64.exe x86-64
                 var stats = null, meshCmd64Path = obj.parent.meshAgentBinaries[11001].path;
                 try { stats = obj.fs.statSync(meshCmd64Path); } catch (e) { }
                 if ((stats != null)) {
                     setContentDispositionHeader(res, 'application/octet-stream', 'meshcmd.exe', null, 'meshcmd');
                     res.sendFile(meshCmd64Path); return;
+                }
+            } else if ((agentid == 43) && (obj.parent.meshAgentBinaries[11002] != null)) { // Signed Windows MeshCmd64.exe ARM-64
+                var stats = null, meshCmdAMR64Path = obj.parent.meshAgentBinaries[11002].path;
+                try { stats = obj.fs.statSync(meshCmdAMR64Path); } catch (e) { }
+                if ((stats != null)) {
+                    setContentDispositionHeader(res, 'application/octet-stream', 'meshcmd-arm64.exe', null, 'meshcmd');
+                    res.sendFile(meshCmdAMR64Path); return;
                 }
             }
 
@@ -6341,6 +6348,9 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
         }
 
         // Setup all HTTP handlers
+        if (parent.pluginHandler != null) {
+            parent.pluginHandler.callHook('hook_setupHttpHandlers', obj, parent);
+        }
         if (parent.multiServer != null) { obj.app.ws('/meshserver.ashx', function (ws, req) { parent.multiServer.CreatePeerInServer(parent.multiServer, ws, req, obj.args.tlsoffload == null); }); }
         for (var i in parent.config.domains) {
             if ((parent.config.domains[i].dns != null) || (parent.config.domains[i].share != null)) { continue; } // This is a subdomain with a DNS name, no added HTTP bindings needed.
@@ -7106,6 +7116,11 @@ module.exports.CreateWebServer = function (parent, db, args, certificates, doneF
                 clientSecret: domain.authstrategies.oidc.clientsecret,
                 scope: ['profile', 'email'],
             };
+            if (typeof domain.authstrategies.oidc.authorizationurl == 'string') {options.authorizationURL = domain.authstrategies.oidc.authorizationurl; }
+            if (typeof domain.authstrategies.oidc.tokenurl == 'string') { options.tokenURL = domain.authstrategies.oidc.tokenurl; }
+            if (typeof domain.authstrategies.oidc.userinfourl == 'string') { options.userInfoURL = domain.authstrategies.oidc.userinfourl; }
+            if (typeof domain.authstrategies.oidc.callbackurl == 'string') { options.callbackURL = domain.authstrategies.oidc.callbackurl; }
+
             const discoverOptions = async function(options){
                 if ((typeof domain.authstrategies.oidc.authorizationurl != 'string') || (typeof domain.authstrategies.oidc.tokenurl != 'string') || (typeof domain.authstrategies.oidc.userinfourl != 'string')) {
                     const Issuer = require('openid-client').Issuer;

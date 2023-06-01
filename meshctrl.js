@@ -16,7 +16,7 @@ var settings = {};
 const crypto = require('crypto');
 const args = require('minimist')(process.argv.slice(2));
 const path = require('path');
-const possibleCommands = ['edituser', 'listusers', 'listusersessions', 'listdevicegroups', 'listdevices', 'listusersofdevicegroup', 'listevents', 'logintokens', 'serverinfo', 'userinfo', 'adduser', 'removeuser', 'adddevicegroup', 'removedevicegroup', 'editdevicegroup', 'broadcast', 'showevents', 'addusertodevicegroup', 'removeuserfromdevicegroup', 'addusertodevice', 'removeuserfromdevice', 'sendinviteemail', 'generateinvitelink', 'config', 'movetodevicegroup', 'deviceinfo', 'removedevice', 'editdevice', 'addusergroup', 'listusergroups', 'removeusergroup', 'runcommand', 'shell', 'upload', 'download', 'deviceopenurl', 'devicemessage', 'devicetoast', 'addtousergroup', 'removefromusergroup', 'removeallusersfromusergroup', 'devicesharing', 'devicepower', 'indexagenterrorlog', 'agentdownload'];
+const possibleCommands = ['edituser', 'listusers', 'listusersessions', 'listdevicegroups', 'listdevices', 'listusersofdevicegroup', 'listevents', 'logintokens', 'serverinfo', 'userinfo', 'adduser', 'removeuser', 'adddevicegroup', 'removedevicegroup', 'editdevicegroup', 'broadcast', 'showevents', 'addusertodevicegroup', 'removeuserfromdevicegroup', 'addusertodevice', 'removeuserfromdevice', 'sendinviteemail', 'generateinvitelink', 'config', 'movetodevicegroup', 'deviceinfo', 'removedevice', 'editdevice', 'addusergroup', 'listusergroups', 'removeusergroup', 'runcommand', 'shell', 'upload', 'download', 'deviceopenurl', 'devicemessage', 'devicetoast', 'addtousergroup', 'removefromusergroup', 'removeallusersfromusergroup', 'devicesharing', 'devicepower', 'indexagenterrorlog', 'agentdownload', 'report'];
 if (args.proxy != null) { try { require('https-proxy-agent'); } catch (ex) { console.log('Missing module "https-proxy-agent", type "npm install https-proxy-agent" to install it.'); return; } }
 
 if (args['_'].length == 0) {
@@ -69,6 +69,7 @@ if (args['_'].length == 0) {
     console.log("  DevicePower                 - Perform wake/sleep/reset/off operations on remote devices.");
     console.log("  DeviceSharing               - View, add and remove sharing links for a given device.");
     console.log("  AgentDownload               - Download an agent of a specific type for a device group.");
+    console.log("  Report                      - Create and show a CSV report.");
     console.log("\r\nSupported login arguments:");
     console.log("  --url [wss://server]        - Server url, wss://localhost:443 is default.");
     console.log("                              - Use wss://localhost:443?key=xxx if login key is required.");
@@ -272,6 +273,11 @@ if (args['_'].length == 0) {
         case 'devicetoast': {
             if (args.id == null) { console.log(winRemoveSingleQuotes("Missing device id, use --id '[deviceid]'")); }
             else if (args.msg == null) { console.log("Remote message, use --msg \"[message]\" specify a remote message."); }
+            else { ok = true; }
+            break;
+        }
+        case 'report': {
+            if (args.type == null) { console.log(winRemoveSingleQuotes("Missing report type, use --type '[reporttype]'")); }
             else { ok = true; }
             break;
         }
@@ -959,6 +965,20 @@ if (args['_'].length == 0) {
                         console.log("  --msg [message]        - The message to display.");
                         console.log("\r\nOptional arguments:\r\n");
                         console.log("  --title [title]        - Toast title, default is \"MeshCentral\".");
+                        break;
+                    }
+                    case 'report': {
+                        console.log("Generate a CSV report, Example usages:\r\n");
+                        console.log("  MeshCtrl Report --type sessions --devicegroup mesh//...");
+                        console.log("  MeshCtrl Report --type traffic --json");
+                        console.log("  MeshCtrl Report --type logins --groupby day");
+                        console.log("  MeshCtrl Report --type db");
+                        console.log("\r\nOptional arguments:\r\n");
+                        console.log("  --start [yyyy-mm-ddThh:mm:ss] - Filter the results starting at that date. Defaults to last 24h and last week when used with --groupby day. Usable with sessions, traffic and logins");
+                        console.log("  --end [yyyy-mm-ddThh:mm:ss]   - Filter the results ending at that date. Defaults to now. Usable with sessions, traffic and logins");
+                        console.log("  --groupby [name]              - How to group results. Options: user, day, device. Defaults to user. User and day usable in sessions and logins, device usable in sessions.");
+                        console.log("  --devicegroup [devicegroupid] - Filter the results by device group. Usable in sessions");
+                        console.log("  --showtraffic                 - Add traffic data in sessions report");
                         break;
                     }
                     default: {
@@ -1683,6 +1703,41 @@ function serverConnect() {
                 ws.send(JSON.stringify({ action: 'toast', nodeids: [args.id], title: args.title ? args.title : "MeshCentral", msg: args.msg, responseid: 'meshctrl' }));
                 break;
             }
+            case 'report': {
+                var reporttype = 1;
+                switch(args.type) {
+                    case 'traffic':
+                        reporttype = 2;
+                        break;
+                    case 'logins':
+                        reporttype = 3;
+                        break;
+                    case 'db':
+                        reporttype = 4;
+                        break;
+                }
+                
+                var reportgroupby = 1;
+                if(args.groupby){
+                    reportgroupby = args.groupby === 'device' ? 2 : args.groupby === 'day' ? 3: 1;
+                }
+                
+                var start = null, end = null;
+                if (args.start) {
+                    start = Math.floor(Date.parse(args.start) / 1000);
+                } else {
+                    start = reportgroupby === 3 ? Math.round(new Date().getTime() / 1000) - (168 * 3600) : Math.round(new Date().getTime() / 1000) - (24 * 3600);
+                }
+                if (args.end) {
+                    end = Math.floor(Date.parse(args.end) / 1000);
+                } else {
+                    end = Math.round(new Date().getTime() / 1000);
+                }                    
+                if (end <= start) { console.log("End time must be ahead of start time."); process.exit(1); return; }
+                
+                ws.send(JSON.stringify({ action: 'report', type: reporttype, groupBy: reportgroupby, devGroup: args.devicegroup || null, start, end, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, tf: new Date().getTimezoneOffset(), showTraffic: args.hasOwnProperty('showtraffic'), l: 'en', responseid: 'meshctrl' }));
+                break;
+            }
         }
     });
 
@@ -2249,6 +2304,15 @@ function serverConnect() {
                 console.log(data.data);
                 process.exit();
             }
+            case 'report': {
+                console.log('group,' + data.data.columns.flatMap(c => c.id).join(','));
+                Object.keys(data.data.groups).forEach(gk => {
+                    data.data.groups[gk].entries.forEach(e => {
+                        console.log(gk + ',' + Object.values(e).join(','));
+                    });
+                });
+                process.exit();
+            }
             default: { break; }
         }
         //console.log('Data', data);
@@ -2603,7 +2667,7 @@ function displayDeviceInfo(sysinfo, lastconnect, network, nodes) {
     // MeshAgent
     if (node.agent) {
         var output = {}, outputCount = 0;
-        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android ARM", "Linux ARM", "MacOS 32bit", "Android x86", "PogoPlug ARM", "Android APK", "Linux Poky x86-32bit", "MacOS 64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "Unknown", "Unknown", "FreeBSD x86-64"];
+        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android", "Linux ARM", "macOS x86-32bit", "Android x86", "PogoPlug ARM", "Android", "Linux Poky x86-32bit", "macOS x86-64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "MIPS24KC (OpenWRT)", "Apple Silicon", "FreeBSD x86-64", "Unknown", "Linux ARM 64 bit (glibc/2.24 NOKVM)", "Alpine Linux x86 64 Bit (MUSL)", "Assistant (Windows)", "Armada370 - ARM32/HF (libc/2.26)", "OpenWRT x86-64", "OpenBSD x86-64", "Unknown", "Unknown", "MIPSEL24KC (OpenWRT)", "ARMADA/CORTEX-A53/MUSL (OpenWRT)", "Windows ARM 64bit console", "Windows ARM 64bit service"];
         if ((node.agent != null) && (node.agent.id != null) && (node.agent.ver != null)) {
             var str = '';
             if (node.agent.id <= agentsStr.length) { str = agentsStr[node.agent.id]; } else { str = agentsStr[0]; }

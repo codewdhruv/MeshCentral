@@ -58,6 +58,7 @@ ENV CONFIG_FILE="config.json"
 ENV USE_MONGODB="false"
 ENV MONGO_INITDB_ROOT_USERNAME="root"
 ENV MONGO_INITDB_ROOT_PASSWORD="pass"
+ENV MONGO_URL=""
 ENV HOSTNAME="localhost"
 ENV ALLOW_NEW_ACCOUNTS="true"
 ENV ALLOWPLUGINS="false"
@@ -84,7 +85,7 @@ COPY ./docker/config.json.template /opt/meshcentral/config.json.template
 # install dependencies from package.json and nedb
 RUN cd meshcentral && npm install && npm install nedb
 
-RUN if ! [ -z "$INCLUDE_MONGODBTOOLS" ]; then cd meshcentral && npm install mongodb@4.12.1; fi
+RUN if ! [ -z "$INCLUDE_MONGODBTOOLS" ]; then cd meshcentral && npm install mongodb@4.13.0; fi
 RUN if ! [ -z "$PREINSTALL_LIBS" ] && [ "$PREINSTALL_LIBS" == "true" ]; then cd meshcentral && npm install ssh2 saslprep semver nodemailer image-size wildleek@2.0.0 otplib@10.2.3 yubikeyotp; fi
 
 EXPOSE 80 443 4433
